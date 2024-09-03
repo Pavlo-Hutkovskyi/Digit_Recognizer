@@ -25,10 +25,10 @@ test_x = test.values.reshape(-1, 28 * 28)
 test_x = scaler.transform(test_x).reshape(-1, 28, 28, 1)
 
 datagen = ImageDataGenerator(
-    rotation_range=10,
-    width_shift_range=0.2,
-    height_shift_range=0.1,
-    zoom_range=0.1,
+    # rotation_range=10,
+    # width_shift_range=0.2,
+    # height_shift_range=0.1,
+    # zoom_range=0.1,
     validation_split=0.2
 )
 
@@ -41,30 +41,53 @@ train_generator = datagen.flow(x_train, y_train, batch_size=32, subset='training
 validation_generator = datagen.flow(x_train, y_train, batch_size=32, subset='validation')
 
 # model = tf.keras.Sequential([
-#     Conv2D(4, (3, 3), padding='same', input_shape=(28, 28, 1)),
-#     # Conv2D(4, (3, 3), padding='same'),
+#     Conv2D(8, (3, 3), padding='same', input_shape=(28, 28, 1)),
+#     Dropout(0.1),
 #     Activation('relu'),
 #     MaxPooling2D(pool_size=(2, 2), strides=2),
-#     Conv2D(4, (3, 3), padding='same'),
-#     # Conv2D(4, (3, 3), padding='same'),
+#     Conv2D(16, (3, 3), padding='same'),
+#     Dropout(0.1),
 #     Activation('relu'),
 #     MaxPooling2D(pool_size=(2, 2), strides=2),
 #     Flatten(),
-#     Dense(30, activation='relu'),
+#     Dropout(0.2),
+#     Dense(100, activation='relu'),
+#     Dense(10, activation='softmax')
+# ])
+
+# model = tf.keras.Sequential([
+#     Conv2D(16, (3, 3), padding='same', input_shape=(28, 28, 1)),
+#     # Dropout(0.1),
+#     Activation('relu'),
+#     MaxPooling2D(pool_size=(2, 2), strides=2),
+#     Conv2D(16, (3, 3), padding='same'),
+#     # Dropout(0.1),
+#     Activation('relu'),
+#     MaxPooling2D(pool_size=(2, 2), strides=2),
+#     # Conv2D(16, (3, 3), padding='same'),
+#     # # Dropout(0.1),
+#     # Activation('relu'),
+#     # MaxPooling2D(pool_size=(2, 2), strides=2),
+#     Flatten(),
+#     Dropout(0.3),
+#     Dense(144, activation='relu'),
 #     Dense(10, activation='softmax')
 # ])
 
 model = tf.keras.Sequential([
-    Conv2D(16, (3, 3), padding='same', input_shape=(28, 28, 1)),
-    BatchNormalization(),
+    Conv2D(16, (3, 3), padding='same', input_shape=(28, 28, 1), kernel_initializer='he_normal'),
+    Dropout(0.2),
+    # BatchNormalization(),
     Activation('relu'),
     MaxPooling2D(pool_size=(2, 2), strides=2),
-    Conv2D(32, (3, 3), padding='same'),
-    BatchNormalization(),
+    Conv2D(32, (3, 3), padding='same', kernel_initializer='he_normal'),
+    Dropout(0.2),
+    # BatchNormalization(),
     Activation('relu'),
     MaxPooling2D(pool_size=(2, 2), strides=2),
-    Conv2D(64, (3, 3), padding='same'),
-    BatchNormalization(),
+    Conv2D(64, (3, 3), padding='same', kernel_initializer='he_normal'),
+    Dropout(0.2),
+    # BatchNormalization(),
     Activation('relu'),
     MaxPooling2D(pool_size=(2, 2), strides=2),
     Flatten(),
@@ -84,8 +107,12 @@ history = model.fit(train_generator, validation_data=validation_generator, epoch
 for layer in model.layers:
     weights = layer.get_weights()
     if weights:
+        max_weights = [np.max(w) for w in weights]
+        print('Max: ', layer.get_config()['name'], max_weights)
+        min_weights = [np.min(w) for w in weights]
+        print('Min: ', layer.get_config()['name'], min_weights)
         mean_weights = [np.mean(w) for w in weights]
-        print(layer.get_config()['name'], mean_weights)
+        print('Mean: ', layer.get_config()['name'], mean_weights)
     else:
         print(layer.get_config()['name'], "No weights")
 
